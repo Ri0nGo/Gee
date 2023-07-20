@@ -2,20 +2,20 @@ package main
 
 import (
 	"Gee/gee"
-	"fmt"
 	"net/http"
 )
 
 func main() {
 	r := gee.New()
-	r.GET("/home", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Path %s, Method: %s \n", r.Method, r.URL)
+	r.GET("/home", func(c *gee.Context) {
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
 
-	r.POST("/index", func(w http.ResponseWriter, r *http.Request) {
-		for k, v := range r.Header {
-			fmt.Fprintf(w, "Header [%s] = %s \n", k, v)
-		}
+	r.POST("/index", func(c *gee.Context) {
+		c.JSON(200, gee.H{
+			"username": c.PostForm("user"),
+			"password": c.PostForm("pwd"),
+		})
 	})
 
 	r.Run(":8000")
