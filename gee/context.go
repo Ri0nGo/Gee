@@ -13,8 +13,9 @@ type Context struct {
 	Req  *http.Request
 
 	// request info
-	Method string
+	Method HttpMethod
 	Path   string
+	Params map[string]string
 
 	// response info
 	StatusCode int
@@ -24,7 +25,7 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
 		Resp:   w,
 		Req:    r,
-		Method: r.Method,
+		Method: HttpMethod(r.Method),
 		Path:   r.URL.Path,
 	}
 }
@@ -36,6 +37,11 @@ func (c *Context) Query(key string) string {
 
 func (c *Context) PostForm(key string) string {
 	return c.Req.FormValue(key)
+}
+
+func (c *Context) Param(key string) string {
+	value := c.Params[key]
+	return value
 }
 
 // === 内部函数封装 === //
