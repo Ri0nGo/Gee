@@ -18,6 +18,7 @@ func NewRouter() *Router {
 	}
 }
 
+// addRouter 将路由地址添加到前缀树中
 func (r *Router) addRouter(method HttpMethod, pattern string, handlerFunc HandlerFunc) {
 	parts := parsePattern(pattern)
 	key := fmt.Sprintf("%s_%s", method, pattern)
@@ -29,6 +30,7 @@ func (r *Router) addRouter(method HttpMethod, pattern string, handlerFunc Handle
 	r.handlers[key] = handlerFunc
 }
 
+// getRouter 获取一个前缀树节点和params
 func (r *Router) getRouter(method HttpMethod, path string) (*node, map[string]string) {
 	// urlPath 表示用户请求的url地址
 	urlPath := parsePattern(path)
