@@ -1,6 +1,9 @@
 package gee
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 /*
 Pattern 只有是最后一层叶子节点时，才会设置pattern，非叶子节点时不会设置pattern的
@@ -16,6 +19,7 @@ type node struct {
 
 // matchChild 查找一个节点，即 传入的part 和 节点的part 相同，且isWild 为true
 func (n *node) matchChild(part string) *node {
+	fmt.Println("n children", n.children)
 	for _, child := range n.children {
 		// child.isWild 表示为当前节点为动态匹配，类似于:lang, 表示匹配任意字符，并将该字符赋值给lang
 		if child.part == part || child.isWild {
@@ -51,7 +55,8 @@ func (n *node) insert(pattern string, parts []string, height int) {
 	part := parts[height]
 	child := n.matchChild(part)
 	if child == nil {
-		child := &node{
+		// 注意，这里千万不能写出 := ，若写成:= 则表示在 if 作用域内定义了一个child，此时外部的child是nil
+		child = &node{
 			part:   part,
 			isWild: part[0] == ':' || part[0] == '*',
 		}
