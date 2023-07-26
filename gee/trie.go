@@ -1,7 +1,6 @@
 package gee
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -19,7 +18,6 @@ type node struct {
 
 // matchChild 查找一个节点，即 传入的part 和 节点的part 相同，且isWild 为true
 func (n *node) matchChild(part string) *node {
-	fmt.Println("n children", n.children)
 	for _, child := range n.children {
 		// child.isWild 表示为当前节点为动态匹配，类似于:lang, 表示匹配任意字符，并将该字符赋值给lang
 		if child.part == part || child.isWild {

@@ -10,7 +10,9 @@ func newTestRouter() *Router {
 	r := NewRouter()
 	fmt.Println("test new router: ", r)
 	r.addRouter("GET", "/", nil)
-	r.addRouter("GET", "/`hello`/:name", nil)
+	r.addRouter("GET", "/hello/:name", func(c *Context) {
+		fmt.Println("GO GO GO")
+	})
 	r.addRouter("GET", "/hello/b/c", nil)
 	r.addRouter("GET", "/hi/:name", nil)
 	r.addRouter("GET", "/assets/*filepath", nil)
