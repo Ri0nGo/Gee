@@ -62,7 +62,7 @@ func (r *Router) handle(c *Context) {
 	node, params := r.getRouter(c.Method, c.Path)
 	if node != nil {
 		c.Params = params
-		key := string(c.Method) + "_" + c.Path
+		key := string(c.Method) + "_" + node.pattern
 		if f, ok := r.handlers[key]; ok {
 			f(c)
 		}
