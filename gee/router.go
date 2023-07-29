@@ -64,11 +64,12 @@ func (r *Router) handle(c *Context) {
 		c.Params = params
 		key := string(c.Method) + "_" + node.pattern
 		if f, ok := r.handlers[key]; ok {
-			f(c)
+			c.handlers = append(c.handlers, f)
 		}
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
+	c.Next()
 }
 
 // parsePattern 解析请求的path

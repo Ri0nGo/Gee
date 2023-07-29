@@ -19,6 +19,10 @@ type Context struct {
 
 	// response info
 	StatusCode int
+
+	// middleware
+	handlers []HandlerFunc
+	index    int
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -27,10 +31,12 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 		Req:    r,
 		Method: HttpMethod(r.Method),
 		Path:   r.URL.Path,
+		index:  -1,
 	}
 }
 
-// === requests 事件封装 === //
+// -- requests 事件封装 -- //
+
 func (c *Context) Query(key string) string {
 	return c.Req.URL.Query().Get(key)
 }
@@ -44,7 +50,8 @@ func (c *Context) Param(key string) string {
 	return value
 }
 
-// === 内部函数封装 === //
+// -- 内部函数封装 -- //
+
 func (c *Context) SetStatus(code int) {
 	c.StatusCode = code
 	c.Resp.WriteHeader(code)
@@ -54,7 +61,7 @@ func (c *Context) SetHeader(key string, value string) {
 	c.Resp.Header().Set(key, value)
 }
 
-// === 提供方法，方便使用 === //
+// -- 提供方法，方便使用 -- //
 
 func (c *Context) JSON(code int, data interface{}) {
 	c.SetHeader("Content-Type", "application/json")
@@ -80,4 +87,14 @@ func (c *Context) HTML(code int, html string) {
 	c.SetHeader("Content-Type", "text/html")
 	c.SetStatus(code)
 	c.Resp.Write([]byte(html))
+}
+
+// -- middleware 方法 -- //
+
+func (c *Context) Next() {
+	c.index++
+	s := len(c.handlers)
+	for ; c.index < s; c.index++ {
+		c.handlers[c.index](c)
+	}
 }
