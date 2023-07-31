@@ -31,6 +31,13 @@ func New() *Engine {
 	return engine
 }
 
+// Default 默认使用日志中间件和异常捕获中间件
+func Default() *Engine {
+	engine := New()
+	engine.Use(Logger(), Recovery())
+	return engine
+}
+
 // Group 路由分组处理
 func (rp *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := rp.engine
