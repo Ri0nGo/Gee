@@ -3,15 +3,19 @@ package gee
 import (
 	"log"
 	"net/http"
+	"path"
 	"strings"
+	"text/template"
 )
 
 type HandlerFunc func(c *Context)
 
 type Engine struct {
 	*RouterGroup
-	router *Router
-	groups []*RouterGroup
+	router        *Router
+	groups        []*RouterGroup
+	htmlTemplates *template.Template
+	funcMap       template.FuncMap // for html render
 }
 
 type RouterGroup struct {
@@ -55,6 +59,28 @@ func (rp *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	rp.addRouter(POSTMethod, pattern, handler)
 }
 
+// createStaticHandler 创建静态资源文件处理程序
+func (rp *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(rp.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			c.SetStatus(http.StatusNotFound)
+			return
+		}
+		fileServer.ServeHTTP(c.Resp, c.Req)
+	}
+}
+
+// Static serve static files, 手动做的参数拼接
+func (group *RouterGroup) Static(relativePath string, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	// Register GET handlers
+	group.GET(urlPattern, handler)
+}
+
 // Use 添加中间件
 func (rp *RouterGroup) Use(middlewares ...HandlerFunc) {
 	rp.middlewares = append(rp.middlewares, middlewares...)
@@ -74,5 +100,18 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c := NewContext(w, r)
 	c.handlers = middlewares
+	c.engine = e
 	e.router.handle(c)
+}
+
+// -- HTML 模版处理 -- //
+
+// SetFuncMap 设置模版处理函数
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+// LoadHTMLGlob 导入html路径
+func (e *Engine) LoadHTMLGlob(pattern string) {
+	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
 }

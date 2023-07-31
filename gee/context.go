@@ -16,6 +16,7 @@ type Context struct {
 	Method HttpMethod
 	Path   string
 	Params map[string]string
+	engine *Engine
 
 	// response info
 	StatusCode int
@@ -83,10 +84,17 @@ func (c *Context) Data(code int, data []byte) {
 	c.Resp.Write(data)
 }
 
-func (c *Context) HTML(code int, html string) {
+func (c *Context) Fail(code int, err string) {
+	c.index = len(c.handlers)
+	c.JSON(code, H{"message": err})
+}
+
+func (c *Context) HTML(code int, name string, data interface{}) {
 	c.SetHeader("Content-Type", "text/html")
 	c.SetStatus(code)
-	c.Resp.Write([]byte(html))
+	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Resp, name, data); err != nil {
+		c.Fail(500, err.Error())
+	}
 }
 
 // -- middleware 方法 -- //
